@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 
-// PERBAIKAN: Mengubah deklarasi kedua menjadi __dirname
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
 
-// Catatan: Jika ingin model terbaru, kamu juga bisa pakai gemini-2.5-flash
+
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
 app.use(cors());
@@ -40,8 +40,8 @@ app.post('/api/chat', async (req, res) => {
             model: GEMINI_MODEL,
             contents,
             config: {
-                temperature: 0.7, // Diturunkan sedikit ke 0.7 agar jawaban Sie Maba lebih konsisten dan akurat
-                // PERBAIKAN: Menambahkan persona "Sie Maba" ke systemInstruction
+                temperature: 0.7,
+
                 systemInstruction: `Anda adalah "Sie Maba", seorang asisten virtual sekaligus kakak tingkat yang ramah, suportif, dan informatif. 
                 Tugas utama Anda adalah membimbing mahasiswa baru (maba) untuk memahami kehidupan perkuliahan, seperti sistem akademik, tips menghadapi dosen, manajemen waktu, organisasi kampus, hingga tips survive di lingkungan universitas. 
                 Gunakan bahasa Indonesia yang santai, interaktif, namun tetap sopan dan memotivasi.`
