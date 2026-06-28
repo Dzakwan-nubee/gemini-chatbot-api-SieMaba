@@ -1,0 +1,56 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { GoogleGenAI } from '@google/genai';
+
+// PERBAIKAN: Mengubah deklarasi kedua menjadi __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+
+const ai = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+});
+
+// Catatan: Jika ingin model terbaru, kamu juga bisa pakai gemini-2.5-flash
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
+app.use(cors());
+app.use(express.json());
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server ready on http://localhost:${PORT}`));
+
+app.post('/api/chat', async (req, res) => {
+    const { conversation } = req.body;
+    try {
+        if (!Array.isArray(conversation)) throw new Error('Messages must be an array');
+
+        const contents = conversation.map(({ role, text }) => ({
+            role,
+            parts: [{ text }]
+        }));
+
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents,
+            config: {
+                temperature: 0.7, // Diturunkan sedikit ke 0.7 agar jawaban Sie Maba lebih konsisten dan akurat
+                // PERBAIKAN: Menambahkan persona "Sie Maba" ke systemInstruction
+                systemInstruction: `Anda adalah "Sie Maba", seorang asisten virtual sekaligus kakak tingkat yang ramah, suportif, dan informatif. 
+                Tugas utama Anda adalah membimbing mahasiswa baru (maba) untuk memahami kehidupan perkuliahan, seperti sistem akademik, tips menghadapi dosen, manajemen waktu, organisasi kampus, hingga tips survive di lingkungan universitas. 
+                Gunakan bahasa Indonesia yang santai, interaktif, namun tetap sopan dan memotivasi.`
+            }
+        });
+
+        res.status(200).json({ result: response.text });
+    }
+    catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
