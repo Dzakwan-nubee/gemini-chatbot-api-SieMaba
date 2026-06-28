@@ -5,7 +5,6 @@ const darkModeToggle = document.getElementById('dark-mode-toggle');
 
 let conversation = [];
 
-// Handle Dark Mode Toggle
 darkModeToggle.addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
   if (document.body.classList.contains('dark-mode')) {
@@ -15,22 +14,39 @@ darkModeToggle.addEventListener('click', () => {
   }
 });
 
+function checkWelcomeScreen() {
+  const welcomeScreen = document.getElementById('welcome-screen');
+  if (welcomeScreen) {
+    welcomeScreen.remove();
+  }
+}
+
+chatBox.addEventListener('click', (e) => {
+  if (e.target.classList.contains('suggestion-chip')) {
+
+    const chipText = e.target.innerText.replace(/^[^\s]+\s/, '');
+
+    input.value = chipText;
+
+    form.dispatchEvent(new Event('submit'));
+  }
+});
+
 form.addEventListener('submit', async function (e) {
   e.preventDefault();
 
   const userMessage = input.value.trim();
   if (!userMessage) return;
 
-  // Add the user's message to the chat box and history
+  checkWelcomeScreen();
+
   appendMessage('user', userMessage);
   conversation.push({ role: 'user', text: userMessage });
   input.value = '';
 
-  // Show a temporary "Thinking..." bot message
   const botMessageElement = appendMessage('model', 'Thinking...');
 
   try {
-    // Send the conversation history as a POST request to /api/chat
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -45,7 +61,6 @@ form.addEventListener('submit', async function (e) {
 
     const data = await response.json();
 
-    // Replace the "Thinking..." message with the AI's reply parsed from Markdown
     if (data && data.result) {
       botMessageElement.innerHTML = marked.parse(data.result);
       conversation.push({ role: 'model', text: data.result });
